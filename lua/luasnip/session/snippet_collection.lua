@@ -10,6 +10,28 @@ local M = {
 	invalidated_count = 0,
 }
 
+do
+	local auto
+	function auto(self, key, depth)
+		print("auto", key)
+		local t = {}
+		if depth ~= 1 then
+			setmetatable(t, {
+			-- TODO not sure if this is that nice, creating a new function on
+			-- each time (lua-users does this by a seperate mamber)
+				__index = function(s,k) return auto(s,k,depth-1) end,
+			})
+		end
+		self[key] = t
+		return t
+	end
+	function AutomagicTable(depth)
+		return setmetatable({}, {__index = function(s,k) return auto(s,k, depth or 0) end})
+	end
+end
+-- TODO use AutomagicTable with by_prio.autosnippets(2), by_prio.snippets(2)
+-- TODO use AutomagicTable with by_ft.autosnippets(1), by_ft.snippets(1)
+
 local by_key = {}
 
 -- stores snippets/autosnippets by priority.
