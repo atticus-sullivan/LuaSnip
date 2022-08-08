@@ -10,27 +10,19 @@ local M = {
 	invalidated_count = 0,
 }
 
-do
-	local auto
-	function auto(self, key, depth)
-		print("auto", key)
-		local t = {}
-		if depth ~= 1 then
-			setmetatable(t, {
-			-- TODO not sure if this is that nice, creating a new function on
-			-- each time (lua-users does this by a seperate mamber)
-				__index = function(s,k) return auto(s,k,depth-1) end,
-			})
-		end
-		self[key] = t
-		return t
+-- depth specifies how many levels under this table should get this metamethod as well
+local function auto_creating_tables(self, key, depth)
+	local t = {}
+	if depth ~= 1 then
+		setmetatable(t, {
+		-- TODO not sure if this is that nice, creating a new function on
+		-- each time (lua-users does this by a seperate mamber)
+			__index = function(s,k) return auto_creating_tables(s,k,depth-1) end,
+		})
 	end
-	function AutomagicTable(depth)
-		return setmetatable({}, {__index = function(s,k) return auto(s,k, depth or 0) end})
-	end
+	self[key] = t
+	return t
 end
--- TODO use AutomagicTable with by_prio.autosnippets(2), by_prio.snippets(2)
--- TODO use AutomagicTable with by_ft.autosnippets(1), by_ft.snippets(1)
 
 local by_key = {}
 
@@ -55,6 +47,17 @@ local by_prio = {
 		},
 	},
 }
+-- workarround of the preallocated 1000 prio
+do
+	local tmp = {
+		__index = function(s,k)
+			-- make new tables as they are indexed
+			return auto_creating_tables(s,k, 0)
+		end,
+	}
+	setmetatable(by_prio.snippets[1000], tmp)
+	setmetatable(by_prio.autosnippets[1000], tmp)
+end
 
 -- this isn't in util/util.lua due to circular dependencies. Would be cleaner
 -- to include it there, but it's alright to keep here for now.
@@ -81,7 +84,11 @@ local function insert_sorted_unique(t, k)
 	t[i] = k
 end
 
-local sort_mt = {
+local by_prio_snippets_mt = {
+	__index = function(s,k)
+		-- make new tables as they are indexed
+		return auto_creating_tables(s,k, 1)
+	end,
 	__newindex = function(t, k, v)
 		-- update priority-order as well.
 		insert_sorted_unique(t.order, k)
@@ -89,8 +96,8 @@ local sort_mt = {
 	end,
 }
 
-setmetatable(by_prio.snippets, sort_mt)
-setmetatable(by_prio.autosnippets, sort_mt)
+setmetatable(by_prio.snippets, by_prio_snippets_mt)
+setmetatable(by_prio.autosnippets, by_prio_snippets_mt)
 
 -- iterate priorities, high to low.
 local function prio_iter(type)
@@ -110,6 +117,14 @@ local by_ft = {
 	snippets = {},
 	autosnippets = {},
 }
+
+local by_ft_snippets_mt = {
+	__index = function(s,k)
+		return auto_creating_tables(s,k, 0)
+	end,
+}
+setmetatable(by_ft.snippets, by_ft_snippets_mt)
+setmetatable(by_ft.autosnippets, by_ft_snippets_mt)
 
 local by_id = setmetatable({}, {
 	-- make by_id-table weak (v).
@@ -225,17 +240,8 @@ local current_id = 0
 -- initialized with default values.
 function M.add_snippets(snippets, opts)
 	for ft, ft_snippets in pairs(snippets) do
-		local prios = {
-			autosnippets = {},
-			snippets = {}
-		}
-		local types = {
-			autosnippets = false,
-			snippets = false
-		}
-
-		-- collect which tables should be added
-		-- and do some initialization
+		-- do some initialization
+		-- and insert the snippet
 		for _, snip in ipairs(ft_snippets) do
 			snip.priority = opts.override_priority
 				or (snip.priority ~= -1 and snip.priority)
@@ -251,33 +257,7 @@ function M.add_snippets(snippets, opts)
 			snip.id = current_id
 			current_id = current_id + 1
 
-			types[snip.autotriggered and "autosnippets" or "snippets"] = true
-			prios[snip.autotriggered and "autosnippets" or "snippets"][snip.priority] = true
-		end
-
-		-- create necessary tables
-		for _, typename in ipairs({"autosnippets", "snippets"}) do
-			-- only create table if there are snippets for it.
-			if types[typename] then
-				if not by_ft[typename][ft] then
-					by_ft[typename][ft] = {}
-				end
-
-				local prio_snippet_table = by_prio[typename]
-				for prio, _ in pairs(prios[typename]) do
-					if not prio_snippet_table[prio] then
-						prio_snippet_table[prio] = {
-							[ft] = {}
-						}
-					elseif not prio_snippet_table[prio][ft] then
-						prio_snippet_table[prio][ft] = {}
-					end
-				end
-			end
-		end
-
-		-- do the actual insertion
-		for _, snip in ipairs(ft_snippets) do
+			-- automatically creates new new empty tables for not defined keys
 			table.insert(by_prio[snip.autotriggered and "autosnippets" or "snippets"][snip.priority][ft], snip)
 			table.insert(by_ft[snip.autotriggered and "autosnippets" or "snippets"][ft], snip)
 			by_id[snip.id] = snip
