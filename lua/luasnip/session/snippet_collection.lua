@@ -202,43 +202,63 @@ local current_id = 0
 -- snippets like {ft1={<snippets>}, ft2={<snippets>}}, opts should be properly
 -- initialized with default values.
 function M.add_snippets(snippets, opts)
-	local prio_snip_table = by_prio[opts.type]
-
 	for ft, ft_snippets in pairs(snippets) do
-		local ft_table = by_ft[opts.type][ft]
+		local prios = {
+			autosnippets = {},
+			snippets = {}
+		}
+		local types = {
+			autosnippets = false,
+			snippets = false
+		}
 
-		if not ft_table then
-			ft_table = {}
-			by_ft[opts.type][ft] = ft_table
-		end
-
-		-- TODO: not the nicest loop, can it be improved? Do table-checks outside
-		-- it, preferably.
+		-- collect which tables should be added
+		-- and do some initialization
 		for _, snip in ipairs(ft_snippets) do
 			snip.priority = opts.override_priority
 				or (snip.priority ~= -1 and snip.priority)
 				or opts.default_priority
 				or 1000
 
-			if not prio_snip_table[snip.priority] then
-				prio_snip_table[snip.priority] = {}
-			end
-
-			local prio_ft_table
-			if not prio_snip_table[snip.priority][ft] then
-				prio_ft_table = {}
-				prio_snip_table[snip.priority][ft] = prio_ft_table
-			else
-				prio_ft_table = prio_snip_table[snip.priority][ft]
-			end
-
-			prio_ft_table[#prio_ft_table + 1] = snip
-
-			ft_table[#ft_table + 1] = snip
+			-- TODO
+			-- prefer more specific option I guess.
+			-- snip.autotriggered may not acutally default to nil, that will
+			-- cause problems with snippetProxy.
+			snip.autotriggered = snip.autotriggered ~= nil and snip.autotriggered or opts.type == "autosnippets"
 
 			snip.id = current_id
-			by_id[current_id] = snip
 			current_id = current_id + 1
+
+			types[snip.autotriggered and "autosnippets" or "snippets"] = true
+			prios[snip.autotriggered and "autosnippets" or "snippets"][snip.priority] = true
+		end
+
+		-- create necessary tables
+		for _, typename in ipairs({"autosnippets", "snippets"}) do
+			-- only create table if there are snippets for it.
+			if types[typename] then
+				if not by_ft[typename][ft] then
+					by_ft[typename][ft] = {}
+				end
+
+				local prio_snippet_table = by_prio[typename]
+				for prio, _ in pairs(prios[typename]) do
+					if not prio_snippet_table[prio] then
+						prio_snippet_table[prio] = {
+							[ft] = {}
+						}
+					elseif not prio_snippet_table[prio][ft] then
+						prio_snippet_table[prio][ft] = {}
+					end
+				end
+			end
+		end
+
+		-- do the actual insertion
+		for _, snip in ipairs(ft_snippets) do
+			table.insert(by_prio[snip.autotriggered and "autosnippets" or "snippets"][snip.priority][ft], snip)
+			table.insert(by_ft[snip.autotriggered and "autosnippets" or "snippets"][ft], snip)
+			by_id[snip.id] = snip
 		end
 	end
 
