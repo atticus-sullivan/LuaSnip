@@ -155,8 +155,6 @@ local function init_snippet_opts(opts)
 	-- return sn(t("")) for so-far-undefined keys.
 	in_node.stored = setmetatable(opts.stored or {}, stored_mt)
 
-	in_node.autotriggered = opts.autotriggered or false
-
 	-- wrap non-snippetNode in snippetNode.
 	for key, nodes in pairs(in_node.stored) do
 		in_node.stored[key] = wrap_nodes_in_snippetNode(nodes)
@@ -187,6 +185,9 @@ local function init_snippet_context(context)
 
 	-- might be nil, but whitelisted in snippetProxy.
 	context.priority = context.priority
+
+	-- TODO use nil/true/false vs -1, 0, 1?
+	context.autotriggered = context.autotriggered or false
 
 	-- maybe do this in a better way when we have more parameters, but this is
 	-- fine for now.
