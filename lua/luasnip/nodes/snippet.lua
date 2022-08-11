@@ -186,8 +186,17 @@ local function init_snippet_context(context)
 	-- might be nil, but whitelisted in snippetProxy.
 	context.priority = context.priority
 
-	-- TODO use nil/true/false vs -1, 0, 1?
-	context.autotriggered = context.autotriggered or false
+	-- using an if/then/else construct is more readable than a single and/or
+	-- expression
+	if context.autotriggered == true then
+		context.autotriggered = 1
+	elseif context.autotriggered == false then
+		context.autotriggered = 0
+	else
+		-- undefined (used to later check later if this was set explicitly or
+		-- if the default value should be used (from the add_snippet opts tab))
+		context.autotriggered = -1
+	end
 
 	-- maybe do this in a better way when we have more parameters, but this is
 	-- fine for now.
