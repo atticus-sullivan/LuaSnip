@@ -186,10 +186,9 @@ local function init_snippet_context(context)
 	-- might be nil, but whitelisted in snippetProxy.
 	context.priority = context.priority
 
-	-- keep value, set to nil to signal that this option is unset technically
-	-- this can be removed but having this here to state the options of the
-	-- context-table is nice
-	context.autotriggered = context.autotriggered or nil
+	-- might be nil, but whitelisted in snippetProxy.
+	-- shall be a boolean, allowed values: nil/false/true
+	context.autotriggered = context.autotriggered
 
 	-- maybe do this in a better way when we have more parameters, but this is
 	-- fine for now.
