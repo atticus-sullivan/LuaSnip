@@ -254,15 +254,22 @@ function M.add_snippets(snippets, opts)
 				or 1000
 
 			-- if autotriggered undefined by snippet, take default value from opts
-			snip.autotriggered = snip.autotriggered ~= nil and snip.autotriggered
+			snip.autotriggered = snip.autotriggered ~= nil
+					and snip.autotriggered
 				or opts.type == "autosnippets"
 
 			snip.id = current_id
 			current_id = current_id + 1
 
 			-- do the insertion
-			table.insert(by_prio[snip.autotriggered and "autosnippets" or "snippets"][snip.priority][ft], snip)
-			table.insert(by_ft[snip.autotriggered and "autosnippets" or "snippets"][ft], snip)
+			table.insert(
+				by_prio[snip.autotriggered and "autosnippets" or "snippets"][snip.priority][ft],
+				snip
+			)
+			table.insert(
+				by_ft[snip.autotriggered and "autosnippets" or "snippets"][ft],
+				snip
+			)
 			by_id[snip.id] = snip
 		end
 	end
