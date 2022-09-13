@@ -2221,7 +2221,7 @@ empty the snippets table and the caches of the lazy_load.
     corresponding filetypes. `opts` may contain the following keys:
     - `type`: type of `snippets`, `"snippets"` or `"autosnippets"`. This serves as
         default value for the `autotriggered` key of each snippet added by this call
-        see |luasnip-`snippets`|.
+        see |luasnip-snippets|.
     - `key`: Key that identifies snippets added via this call. If `add_snippets` is
         called with a key that was already used, the snippets from that previous call
         will be removed. This can be used to reload snippets: pass an unique key to
