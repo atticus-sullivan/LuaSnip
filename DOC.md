@@ -2234,7 +2234,7 @@ the lazy_load.
   `opts` may contain the following keys:
   - `type`: type of `snippets`, `"snippets"` or `"autosnippets"`. This
     serves as default value for the `autotriggered` key of each snippet
-    added by this call see [`SNIPPETS`](#SNIPPETS).
+    added by this call see [SNIPPETS](#SNIPPETS).
 
   - `key`: Key that identifies snippets added via this call.  
 	If `add_snippets` is called with a key that was already used, the snippets
