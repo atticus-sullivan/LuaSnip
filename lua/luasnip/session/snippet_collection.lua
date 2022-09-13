@@ -254,8 +254,13 @@ function M.add_snippets(snippets, opts)
 				or 1000
 
 			-- if snippetType undefined by snippet, take default value from opts
-			snip.snippetType = snip.snippetType ~= nil and snip.snippetType or opts.type
-			assert(snip.snippetType == "autosnippets" or snip.snippetType == "snippets", "snipptType must be either 'autosnippets' or 'snippets'")
+			snip.snippetType = snip.snippetType ~= nil and snip.snippetType
+				or opts.type
+			assert(
+				snip.snippetType == "autosnippets"
+					or snip.snippetType == "snippets",
+				"snipptType must be either 'autosnippets' or 'snippets'"
+			)
 
 			snip.id = current_id
 			current_id = current_id + 1
