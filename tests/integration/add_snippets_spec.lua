@@ -200,26 +200,43 @@ describe("add_snippets", function()
 			ls.add_snippets("all", {
 				ls.snippet({trig="triA", snippetType="autosnippet"}, {ls.text_node("helloAworld")}, {})
 			}, {
-				key = "a"
+				key = "a",
 			} )
 		]])
 		exec_lua([[
 			ls.add_snippets("all", {
 				ls.snippet({trig="triB", snippetType="snippet"}, {ls.text_node("helloBworld")}, {})
 			}, {
-				key = "b"
+				key = "b",
 			} )
 		]])
 		exec_lua([[
 			ls.add_snippets("all", {
-				ls.snippet({trig="triC", snippetType="snippet"}, {ls.text_node("helloCworld")}, {})
+				ls.snippet({trig="triC", snippetType=nil}, {ls.text_node("helloCworld")}, {})
 			}, {
-				key = "c"
+				key = "c",
+				type="snippets"
 			} )
 		]])
-		feed("i") -- go to insert mode
+		exec_lua([[
+			ls.add_snippets("all", {
+				ls.snippet({trig="triD", snippetType=nil}, {ls.text_node("helloDworld")}, {})
+			}, {
+				key = "d",
+				type="autosnippets"
+			} )
+		]])
+		exec_lua([[
+			ls.add_snippets("all", {
+				ls.snippet({trig="triE", snippetType="snippet"}, {ls.text_node("helloEworld")}, {})
+			}, {
+				key = "e",
+				type="autosnippets"
+			} )
+		]])
 
 		-- check if snippet "a" is automatically triggered
+		feed("<ESC>cc") -- rewrite line
 		feed("triA")
 		screen:expect({
 			grid = [[
@@ -228,11 +245,12 @@ describe("add_snippets", function()
 			{2:-- INSERT --}                                      |]],
 		})
 
+		feed("<ESC>cc") -- rewrite line
+		feed("triB")
 		-- check if snippet "b" is NOT automatically triggered
-		feed("<space>triB")
 		screen:expect({
 			grid = [[
-			helloAworld triB^                                  |
+			triB^                                              |
 			{0:~                                                 }|
 			{2:-- INSERT --}                                      |]],
 		})
@@ -240,16 +258,17 @@ describe("add_snippets", function()
 		exec_lua("ls.expand()")
 		screen:expect({
 			grid = [[
-			helloAworld helloBworld^                           |
+			helloBworld^                                       |
 			{0:~                                                 }|
 			{2:-- INSERT --}                                      |]],
 		})
 
-		feed("<space>triC")
+		feed("<ESC>cc") -- rewrite line
+		feed("triC")
 		-- check if snippet "c" is NOT automatically triggered
 		screen:expect({
 			grid = [[
-			helloAworld helloBworld triC^                      |
+			triC^                                              |
 			{0:~                                                 }|
 			{2:-- INSERT --}                                      |]],
 		})
@@ -257,7 +276,35 @@ describe("add_snippets", function()
 		exec_lua("ls.expand()")
 		screen:expect({
 			grid = [[
-			helloAworld helloBworld helloCworld^               |
+			helloCworld^                                       |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+
+		feed("<ESC>cc") -- rewrite line
+		feed("triD")
+		-- check if snippet "d" is automatically triggered
+		screen:expect({
+			grid = [[
+			helloDworld^                                       |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+
+		feed("<ESC>cc") -- rewrite line
+		feed("triE")
+		-- check if snippet "e" is NOT automatically triggered
+		screen:expect({
+			grid = [[
+			triE^                                              |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+		-- check if snippet "c" is working
+		exec_lua("ls.expand()")
+		screen:expect({
+			grid = [[
+			helloEworld^                                       |
 			{0:~                                                 }|
 			{2:-- INSERT --}                                      |]],
 		})
