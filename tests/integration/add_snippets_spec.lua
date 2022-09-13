@@ -193,4 +193,73 @@ describe("add_snippets", function()
 			{2:-- INSERT --}                                      |]],
 		})
 	end)
+
+	it("add autosnippets by option", function()
+		exec_lua("ls.config.setup({ enable_autosnippets = true })")
+		exec_lua([[
+			ls.add_snippets("all", {
+				ls.snippet({trig="triA", autotriggered=true}, {ls.text_node("helloAworld")}, {})
+			}, {
+				key = "a"
+			} )
+		]])
+		exec_lua([[
+			ls.add_snippets("all", {
+				ls.snippet({trig="triB", autotriggered=false}, {ls.text_node("helloBworld")}, {})
+			}, {
+				key = "b"
+			} )
+		]])
+		exec_lua([[
+			ls.add_snippets("all", {
+				ls.snippet({trig="triC", autotriggered=nil}, {ls.text_node("helloCworld")}, {})
+			}, {
+				key = "c"
+			} )
+		]])
+		feed("i") -- go to insert mode
+
+		-- check if snippet "a" is automatically triggered
+		feed("triA")
+		screen:expect({
+			grid = [[
+			helloAworld^                                       |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+
+		-- check if snippet "b" is NOT automatically triggered
+		feed("<space>triB")
+		screen:expect({
+			grid = [[
+			helloAworld triB^                                  |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+		-- check if snippet "b" is working
+		exec_lua("ls.expand()")
+		screen:expect({
+			grid = [[
+			helloAworld helloBworld^                           |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+
+		feed("<space>triC")
+		-- check if snippet "c" is NOT automatically triggered
+		screen:expect({
+			grid = [[
+			helloAworld helloBworld triC^                      |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+		-- check if snippet "c" is working
+		exec_lua("ls.expand()")
+		screen:expect({
+			grid = [[
+			helloAworld helloBworld helloCworld^               |
+			{0:~                                                 }|
+			{2:-- INSERT --}                                      |]],
+		})
+	end)
 end)
