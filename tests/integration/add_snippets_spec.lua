@@ -198,21 +198,21 @@ describe("add_snippets", function()
 		exec_lua("ls.config.setup({ enable_autosnippets = true })")
 		exec_lua([[
 			ls.add_snippets("all", {
-				ls.snippet({trig="triA", autotriggered=true}, {ls.text_node("helloAworld")}, {})
+				ls.snippet({trig="triA", snippetType="autosnippet"}, {ls.text_node("helloAworld")}, {})
 			}, {
 				key = "a"
 			} )
 		]])
 		exec_lua([[
 			ls.add_snippets("all", {
-				ls.snippet({trig="triB", autotriggered=false}, {ls.text_node("helloBworld")}, {})
+				ls.snippet({trig="triB", snippetType="snippet"}, {ls.text_node("helloBworld")}, {})
 			}, {
 				key = "b"
 			} )
 		]])
 		exec_lua([[
 			ls.add_snippets("all", {
-				ls.snippet({trig="triC", autotriggered=nil}, {ls.text_node("helloCworld")}, {})
+				ls.snippet({trig="triC", snippetType="snippet"}, {ls.text_node("helloCworld")}, {})
 			}, {
 				key = "c"
 			} )
