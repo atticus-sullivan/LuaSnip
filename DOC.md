@@ -117,10 +117,11 @@ entries:
   Snippets with high priority will be matched to a trigger before those with a
   lower one.
   The priority for multiple snippets can also be set in `add_snippets`.
-- `autotriggered`: boolean, whether this snippet has to be triggered by
-  `ls.expand()` or is triggered automatically (don't forget to set
-  `ls.config.setup({ enable_autosnippets = true })` if you want to use this
-  feature)
+- `snippetType`: string, should be either `snippet` or `autosnippet`, decides
+  whether this snippet has to be triggered by `ls.expand()` or whether is
+  triggered automatically (don't forget to set `ls.config.setup({
+  enable_autosnippets = true })` if you want to use this feature). If unset it
+  depends on how the snippet is added of which type the snippet will be.
 
 `s` can also be a single string, in which case it is used instead of `trig`, all
 other values being defaulted:
@@ -2233,7 +2234,7 @@ the lazy_load.
   the keys are corresponding filetypes.  
   `opts` may contain the following keys:
   - `type`: type of `snippets`, `"snippets"` or `"autosnippets"`. This
-    serves as default value for the `autotriggered` key of each snippet
+    serves as default value for the `snippetType` key of each snippet
     added by this call see [SNIPPETS](#SNIPPETS).
 
   - `key`: Key that identifies snippets added via this call.  
